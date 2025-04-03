@@ -8,4 +8,14 @@ public class Constants {
     public static final int NCOLS = 28;
     public static final int SCREEN_WIDTH = NCOLS * TILE_WIDTH;
     public static final int SCREEN_HEIGHT = NROWS * TILE_HEIGHT;
+
+    public static final int[] YELLOW = {255, 255, 0};
+
+    public static final int STOP = 0;
+    public static final int UP = 1;
+    public static final int DOWN = -1;
+    public static final int LEFT = 2;
+    public static final int RIGHT = -2;
+
+    public static final int PACMAN = 0;
 }

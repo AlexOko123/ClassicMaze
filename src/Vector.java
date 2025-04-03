@@ -3,6 +3,8 @@
 // It's sort of a grid situation to get us started. 
 
 import java.lang.Math;
+import java.time.Duration;
+import java.time.Instant;
 
 
 public class Vector {
@@ -10,11 +12,14 @@ public class Vector {
     private double x;
     private double y;
     private final double thresh = 0.000001; // small threshold to handle floating-point precision issues
+    private Instant lastTime;
 
     // default constructor initializes vector at (0,0)
     public Vector(){
         this.x = 0;
         this.y = 0;
+        this.lastTime = Instant.now();
+
     }
 
     // constructor with parameters to set x and y values
@@ -24,7 +29,7 @@ public class Vector {
     }
 
     // getters and setters for x, y, and threshold
-    public double getx() {
+    public double getX() {
         return x;
     }
     public void setX(double x) {
@@ -109,4 +114,6 @@ public class Vector {
     public String toString() {
         return "<" + x + ", " + y + ">";
     }
+
+
 }
