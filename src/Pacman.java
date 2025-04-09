@@ -15,6 +15,8 @@ public class Pacman implements KeyListener {
     private double speed;
     private int radius;
     private int[] color;
+    private Maze node;
+    private Maze target;
 
     // keep track of currently pressed keys
     private boolean upPressed = false;
@@ -22,7 +24,7 @@ public class Pacman implements KeyListener {
     private boolean leftPressed = false;
     private boolean rightPressed = false;
 
-    public Pacman() {
+    public Pacman(Maze startNode) {
         this.name = Constants.PACMAN;
         this.position = new Vector(200, 400);
 
@@ -37,7 +39,59 @@ public class Pacman implements KeyListener {
         this.speed = 100 * Constants.TILE_WIDTH/16;
         this.radius = 10;
         this.color = Constants.YELLOW;
+
+        // node based movement
+        this.node = startNode;
+        this.target = startNode;
+        this.setPosition();
     }
+
+    public void setPosition() {
+        this.position = this.node.getPosition().copy();
+    }
+
+    // check if pacman has overshot the target node
+    public boolean overshot() {
+        if (this.target != null) {
+            Vector vec1 = this.target.getPosition().subtract(this.node.getPosition());
+            Vector vec2 = this.position.subtract(this.node.getPosition());
+            double node2Target = vec1.magnitudeSquared();
+            double node2Self = vec2.magnitudeSquared();
+            return node2Self >= node2Target;
+        }
+        return false;
+    }
+
+    // reverse the direction and swap node and target
+    public void reverseDirection() {
+        this.direction *= -1;
+        Maze temp = this.node;
+        this.node = this.target;
+        this.target = temp;
+    }
+
+    // check if direction is opposite to current direction
+    public boolean oppositeDirection(int direction) {
+        if (direction != Constants.STOP) {
+            if (direction == this.direction * -1) {
+                return true;
+            }
+        } return false;
+    }
+
+    // get the next target node based on the current direction
+    private Maze getNewTarget(int direction) {
+        if (direction == Constants.STOP) {
+            return this.node;
+        }
+
+        Maze neighbor = this.node.getNeighbor(direction);
+        if (neighbor != null) {
+            return neighbor;
+        }
+        return this.node;
+    }
+
 
     // this method updates an object's position over time based on its current direction
     // and speed, and then determines a new direction dynamically
@@ -47,7 +101,24 @@ public class Pacman implements KeyListener {
         this.position = this.position.add(movement);
 
         int newDirection = getValidKey();
-        this.direction = newDirection;
+
+        if (this.overshot()) {
+            this.node = this.target;
+            this.target = this.getNewTarget(newDirection);
+
+            if (this.target != this.node) {
+                this.direction = newDirection;
+            } else {
+                if (this.target == this.node) {
+                    this.direction = Constants.STOP;
+                }
+            }
+            this.setPosition();
+        } else {
+            if (this.oppositeDirection(newDirection)) {
+                this.reverseDirection();
+            }
+        }
     }
 
     public int getValidKey() {

@@ -10,6 +10,7 @@ import javax.swing.JFrame;
 import java.time.Duration;
 import java.time.Instant;
 
+
 public class GameController extends JPanel {
     // creating a backgroundColor and setting to the BLACK declared in Constants.java
     private JFrame frame;
@@ -18,6 +19,7 @@ public class GameController extends JPanel {
     private Instant lastTime;
     private BufferedImage background;
     private Graphics screen;
+    private MazeGroup nodes;
 
     public GameController() {
         // initialize the game window
@@ -49,7 +51,18 @@ public class GameController extends JPanel {
 
     public void startGame() {
         setBackground();
-        this.pacman = new Pacman();
+
+        this.nodes = new MazeGroup();
+        this.nodes.setupTestNodes();
+
+        // initialize pacman with the first node in the nodeList
+        if (!this.nodes.getNodeList().isEmpty()) {
+            this.pacman = new Pacman(this.nodes.getNodeList().get(0));
+        } else {
+            //  if the nodes list is empty
+            System.err.println("Node list is empty");
+            this.pacman = new Pacman(new Maze(200, 400));
+        }
         lastTime = Instant.now();
 
         // registering the Pacman instance as a KeyListener
@@ -98,6 +111,9 @@ public class GameController extends JPanel {
 
         // render pacman
         this.pacman.render(screen);
+
+        // render nodes
+        this.nodes.render(screen);
     }
 
     @Override

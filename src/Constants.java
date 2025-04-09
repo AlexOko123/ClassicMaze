@@ -10,6 +10,8 @@ public class Constants {
     public static final int SCREEN_HEIGHT = NROWS * TILE_HEIGHT;
 
     public static final int[] YELLOW = {255, 255, 0};
+    public static final int[] WHITE = {255, 255, 255}; // color of the nodes
+    public static final int[] RED = {255, 0, 0};    // color of the paths between nodes
 
     public static final int STOP = 0;
     public static final int UP = 1;
