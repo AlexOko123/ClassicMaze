@@ -7,6 +7,7 @@ import java.awt.event.WindowEvent;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import javax.swing.JFrame;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -52,8 +53,25 @@ public class GameController extends JPanel {
     public void startGame() {
         setBackground();
 
-        this.nodes = new MazeGroup();
-        this.nodes.setupTestNodes();
+        try {
+            // Read in maze file to set up maze
+            char[][] maze = FileReader.readMazeFile("pacMaze1.txt");
+            System.out.println("Successfully loaded maze with dimensions: " +
+                    maze.length + " rows x " + maze[0].length + " cols");
+
+            this.nodes = new MazeGroup(maze);
+        } catch (IOException e) {
+            System.err.println("Error loading maze file: " + e.getMessage());
+            System.out.println("Using emergency fallback maze");
+
+            // Minimal fallback maze
+            char[][] fallbackMaze = {
+                    {'X','+','X'},
+                    {'+','.','+'},
+                    {'X','+','X'}
+            };
+            this.nodes = new MazeGroup(fallbackMaze);
+        }
 
         // initialize pacman with the first node in the nodeList
         if (!this.nodes.getNodeList().isEmpty()) {

@@ -5,46 +5,77 @@ import java.util.List;
 public class MazeGroup {
     private List<Maze> nodeList;
 
-    public MazeGroup() {
+    public MazeGroup(char[][] maze) {
         this.nodeList = new ArrayList<>();
+        buildNodeNetwork(maze);
     }
 
-    public void setupTestNodes() {
-        Maze nodeA = new Maze(80, 80);
-        Maze nodeB = new Maze(160, 80);
-        Maze nodeC = new Maze(80, 160);
-        Maze nodeD = new Maze(160, 160);
-        Maze nodeE = new Maze(208, 160);
-        Maze nodeF = new Maze(80, 320);
-        Maze nodeG = new Maze(208, 320);
+        private void buildNodeNetwork(char[][] maze) {
+            // Create all nodes
+            Maze[][] nodeGrid = new Maze[maze.length][maze[0].length];
+            for (int row = 0; row < maze.length; row++) {
+                for (int col = 0; col < maze[row].length; col++) {
+                    if (maze[row][col] == '+') {
+                        nodeGrid[row][col] = new Maze(
+                                col * Constants.TILE_WIDTH,
+                                row * Constants.TILE_HEIGHT
+                        );
+                        nodeList.add(nodeGrid[row][col]);
+                    }
+                }
+            }
 
-        // set up the connections between nodes (neighbors)
-        nodeA.setNeighbor(Constants.RIGHT, nodeB);
-        nodeA.setNeighbor(Constants.DOWN, nodeC);
-        nodeB.setNeighbor(Constants.LEFT, nodeA);
-        nodeB.setNeighbor(Constants.DOWN, nodeD);
-        nodeC.setNeighbor(Constants.UP, nodeA);
-        nodeC.setNeighbor(Constants.RIGHT, nodeD);
-        nodeC.setNeighbor(Constants.DOWN, nodeF);
-        nodeD.setNeighbor(Constants.UP, nodeB);
-        nodeD.setNeighbor(Constants.LEFT, nodeC);
-        nodeD.setNeighbor(Constants.RIGHT, nodeE);
-        nodeE.setNeighbor(Constants.LEFT, nodeD);
-        nodeE.setNeighbor(Constants.DOWN, nodeG);
-        nodeF.setNeighbor(Constants.UP, nodeC);
-        nodeF.setNeighbor(Constants.RIGHT, nodeG);
-        nodeG.setNeighbor(Constants.UP, nodeE);
-        nodeG.setNeighbor(Constants.LEFT, nodeF);
+            // Connect Nodes w/wall checking
+            for (int row = 0; row < maze.length; row++) {
+                for (int col = 0; col < maze[row].length; col++) {
+                    if (nodeGrid[row][col] != null) {
+                        connectWithWallCheck(nodeGrid, maze, row, col);
+                    }
+                }
+            }
+        }
 
-        // add all nodes to the list
-        nodeList.add(nodeA);
-        nodeList.add(nodeB);
-        nodeList.add(nodeC);
-        nodeList.add(nodeD);
-        nodeList.add(nodeE);
-        nodeList.add(nodeF);
-        nodeList.add(nodeG);
-    }
+        private void connectWithWallCheck(Maze[][] nodeGrid, char[][] maze, int row, int col) {
+            // Check RIGHT connection
+            for (int c = col + 1; c < maze[row].length; c++) {
+                if (maze[row][c] == 'X') break; // Wall blocks connection
+                if (nodeGrid[row][c] != null) {
+                    nodeGrid[row][col].setNeighbor(Constants.RIGHT, nodeGrid[row][c]);
+                    nodeGrid[row][c].setNeighbor(Constants.LEFT, nodeGrid[row][col]);
+                    break;
+                }
+            }
+
+            // Check LEFT connection
+            for (int c = col - 1; c >= 0; c--) {
+                if (maze[row][c] == 'X') break;
+                if (nodeGrid[row][c] != null) {
+                    nodeGrid[row][col].setNeighbor(Constants.LEFT, nodeGrid[row][c]);
+                    nodeGrid[row][c].setNeighbor(Constants.RIGHT, nodeGrid[row][col]);
+                    break;
+                }
+            }
+
+            // Check DOWN connection
+            for (int r = row + 1; r < maze.length; r++) {
+                if (maze[r][col] == 'X') break;
+                if (nodeGrid[r][col] != null) {
+                    nodeGrid[row][col].setNeighbor(Constants.DOWN, nodeGrid[r][col]);
+                    nodeGrid[r][col].setNeighbor(Constants.UP, nodeGrid[row][col]);
+                    break;
+                }
+            }
+
+            // Check UP connection
+            for (int r = row - 1; r >= 0; r--) {
+                if (maze[r][col] == 'X') break;
+                if (nodeGrid[r][col] != null) {
+                    nodeGrid[row][col].setNeighbor(Constants.UP, nodeGrid[r][col]);
+                    nodeGrid[r][col].setNeighbor(Constants.DOWN, nodeGrid[row][col]);
+                    break;
+                }
+            }
+        }
 
     public List<Maze> getNodeList() {
         return nodeList;
