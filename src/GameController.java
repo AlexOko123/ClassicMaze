@@ -1,7 +1,8 @@
 
-
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.Graphics;
@@ -21,6 +22,10 @@ public class GameController extends JPanel {
     private BufferedImage background;
     private Graphics screen;
     private MazeGroup nodes;
+    private GameState gameState;
+    private UIRender uiRender;
+    private GhostAI ghostAI;
+    private boolean isGameRunning;
 
     public GameController() {
         // initialize the game window
@@ -43,7 +48,18 @@ public class GameController extends JPanel {
         background = new BufferedImage(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT, BufferedImage.TYPE_INT_RGB);
         screen = background.getGraphics();
 
-        frame.setVisible(true);
+        this.gameState = new GameState();
+        this.uiRender = new UIRender(gameState);
+        this.isGameRunning = true;
+
+        // key listener for global game contorls
+        frame.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                handleKeyPress(e);
+            }
+        });
+
     }
 
     public void setBackground() {
@@ -71,7 +87,10 @@ public class GameController extends JPanel {
                     {'X','+','X'}
             };
             this.nodes = new MazeGroup(fallbackMaze);
+            // initialize ghost AI with the maze nodes
+            this.ghostAI = new GhostAI(this.nodes);
         }
+
 
         // initialize pacman with the first node in the nodeList
         if (!this.nodes.getNodeList().isEmpty()) {
@@ -105,11 +124,21 @@ public class GameController extends JPanel {
             }
         }
 
-        // update pacman with the elapsed time
-        this.pacman.update(dt);
+        // update UI animations
+        uiRender.update(dt);
 
-        // check for game events
-        this.checkEvents();
+        // only update gameplay components if game is in playing state
+        if (gameState.getCurrentState() == Constants.PLAYING) {
+            // update pacman with the time
+            this.pacman.update(dt);
+
+            // update ghosts
+            if (ghostAI != null) {
+                ghostAI.update(dt, pacman);
+            }
+
+            this.checkEvents();
+        }
 
         // render the game
         this.render();
@@ -117,9 +146,26 @@ public class GameController extends JPanel {
         repaint();
     }
 
-    public void checkEvents(){
-        // this will handle game or window events
+    public void checkEvents() {
+        // check if Pacman was caught by a ghost
+        if (ghostAI != null && ghostAI.checkPacmanCaught(pacman.getPosition())) {
+            // handle Pacman death
+            boolean gameStillGoing = gameState.pacmanDeath();
 
+            if (gameStillGoing) {
+                // reset positions but continue game
+                if (pacman != null) {
+                    pacman = new Pacman(this.nodes.getNodeList().get(0));
+                    frame.addKeyListener(pacman);
+                }
+                ghostAI.resetGhosts();
+            }
+        }
+
+        // heck for power pellet collection (example - will need to be implemented with a dot system)
+        // if (checkPowerPelletCollected()) {
+        //     ghostManager.frightenGhosts();
+        // }
     }
 
     public void render() {
@@ -127,11 +173,22 @@ public class GameController extends JPanel {
         screen.setColor(backgroundColor);
         screen.fillRect(0, 0, Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
 
-        // render pacman
-        this.pacman.render(screen);
+        // only render game elements when not on start screen
+        if (gameState.getCurrentState() != Constants.START) {
+            // render nodes
+            this.nodes.render(screen);
 
-        // render nodes
-        this.nodes.render(screen);
+            // render pacman
+            this.pacman.render(screen);
+
+            // render ghosts
+            if (ghostAI != null) {
+                ghostAI.render(screen);
+            }
+        }
+
+        // always render UI elements (score, lives, menus)
+        uiRender.render(screen);
     }
 
     @Override
@@ -150,13 +207,57 @@ public class GameController extends JPanel {
         game.startGame();
 
         // game loop
-        while (true) {
+        while (game.isGameRunning) {
             game.update();
-            try {
-                Thread.sleep(16); // approximately 60 FPS
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        }
+    }
+
+    private void resetGame() {
+        startGame();
+
+        if (ghostAI != null) {
+            ghostAI.resetGhosts();
+        }
+
+        if (pacman != null) {
+            // reset pacman to starting position
+            pacman = new Pacman(this.nodes.getNodeList().get(0));
+            frame.addKeyListener(pacman);
+        }
+    }
+
+    private void handleKeyPress(KeyEvent e) {
+        int key = e.getKeyCode();
+
+        switch (gameState.getCurrentState()) {
+            case Constants.START:
+                if (key == KeyEvent.VK_SPACE) {
+                    gameState.startGame();
+                    resetGame();
+                }
+                break;
+
+            case Constants.PLAYING:
+                if (key == KeyEvent.VK_P || key == KeyEvent.VK_ESCAPE) {
+                    gameState.togglePause();
+                }
+                break;
+
+            case Constants.PAUSED:
+                if (key == KeyEvent.VK_SPACE || key == KeyEvent.VK_P) {
+                    gameState.togglePause();
+                } else if (key == KeyEvent.VK_ESCAPE) {
+                    // Reset to start screen
+                    gameState = new GameState();
+                }
+                break;
+
+            case Constants.GAME_OVER:
+                if (key == KeyEvent.VK_SPACE) {
+                    gameState = new GameState();
+                    resetGame();
+                }
+                break;
         }
     }
 

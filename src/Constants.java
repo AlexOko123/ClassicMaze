@@ -21,6 +21,20 @@ public class Constants {
 
     public static final int PACMAN = 0;
 
+    // game state constants
+    public static final int START = 0;
+    public static final int PLAYING = 1;
+    public static final int PAUSED = 2;
+    public static final int GAME_OVER = 3;
+
+    // ghots constants
+    public static final int CHASE = 0;    // chase Pacman directly
+    public static final int SCATTER = 1;  // return to home corner
+    public static final int FRIGHTENED = 2; // run away from Pacman
+    public static final int EATEN = 3;    // return to ghost house when eaten
+
+
+
 
 
 

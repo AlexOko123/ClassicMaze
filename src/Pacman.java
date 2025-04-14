@@ -189,4 +189,33 @@ public class Pacman implements KeyListener {
        // it wouldn't let me run the code, without having this function, but we don't need so
         // i overrid it
     }
+
+    // getter needed for ghost.java
+    public Vector getPosition() {
+        return this.position;
+    }
+
+    // getter need for ghost.java
+    public Vector getDirection() {
+        Vector dirVector;
+        switch(this.direction) {
+            case Constants.UP:
+                dirVector = new Vector(0, -1);
+                break;
+            case Constants.DOWN:
+                dirVector = new Vector(0, 1);
+                break;
+            case Constants.LEFT:
+                dirVector = new Vector(-1, 0);
+                break;
+            case Constants.RIGHT:
+                dirVector = new Vector(1, 0);
+                break;
+            default:
+                dirVector = new Vector(0, 0);
+        }
+        return dirVector;
+    }
+
+
 }
