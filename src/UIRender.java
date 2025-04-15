@@ -106,62 +106,38 @@ public class UIRender {
 
     // render the start screen
     private void renderStartScreen(Graphics g) {
-        // draw background
-        g.setColor(MENU_BG_COLOR);
-        g.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-
-        // draw title
-        g.setFont(titleFont);
-        g.setColor(HIGHLIGHT_COLOR);
-        String title = "PAC-MAN";
-        FontMetrics fmTitle = g.getFontMetrics();
-        int titleWidth = fmTitle.stringWidth(title);
-        g.drawString(title, (SCREEN_WIDTH - titleWidth) / 2, SCREEN_HEIGHT / 4);
-
-        // draw ghost descriptions
-        g.setFont(smallFont);
-        g.setColor(GHOST_INFO_COLOR);
-        String[] ghostInfo = {
-                "Red Ghost (Blinky) - Chases you directly",
-                "Pink Ghost (Pinky) - Tries to ambush you",
-                "Cyan Ghost (Inky) - Unpredictable movement",
-                "Orange Ghost (Clyde) - Sometimes shy, sometimes not"
-        };
-
-        int y = SCREEN_HEIGHT / 2 - 50;
-        for (String info : ghostInfo) {
-            g.drawString(info, SCREEN_WIDTH / 4, y);
-            y += 25;
-        }
-
-        // draw instructions
-        g.setFont(normalFont);
-        g.setColor(TEXT_COLOR);
-        String[] instructions = {
-                "Use Arrow Keys to move",
-                "Eat all dots to advance levels",
-                "Avoid ghosts unless they're blue"
-        };
-
-        y = SCREEN_HEIGHT / 2 + 50;
-        for (String instruction : instructions) {
-            g.drawString(instruction, SCREEN_WIDTH / 4, y);
-            y += 30;
-        }
-
-        // draw start prompt - blinking
-        if (blinkOn) {
-            g.setFont(normalFont);
-            g.setColor(HIGHLIGHT_COLOR);
-            String startPrompt = "PRESS SPACE TO START";
-            FontMetrics fm = g.getFontMetrics();
-            int promptWidth = fm.stringWidth(startPrompt);
-            g.drawString(startPrompt, (SCREEN_WIDTH - promptWidth) / 2, SCREEN_HEIGHT * 3 / 4 + 30);
-        }
-
-        // draw pacman logo
         g.setColor(Color.YELLOW);
-        g.fillArc((SCREEN_WIDTH - 80) / 2, SCREEN_HEIGHT * 3 / 4 - 50, 80, 80, 30, 300);
+        g.setFont(new Font("Arial", Font.BOLD, 30));
+        g.drawString("PACMAN", Constants.SCREEN_WIDTH / 2 - 80, 150);
+
+        g.setFont(new Font("Arial", Font.PLAIN, 16));
+        g.drawString("Press SPACE to start", Constants.SCREEN_WIDTH / 2 - 90, 200);
+
+        // add ghost names with their colors
+        int y = 250;
+
+        // blinky (Red)
+        g.setColor(Color.RED);
+        g.drawString("BLINKY", Constants.SCREEN_WIDTH / 2 - 80, y);
+        y += 30;
+
+        // pinky (Pink)
+        g.setColor(Color.PINK);
+        g.drawString("PINKY", Constants.SCREEN_WIDTH / 2 - 80, y);
+        y += 30;
+
+        // inky (Cyan)
+        g.setColor(new Color(0, 255, 255));
+        g.drawString("INKY", Constants.SCREEN_WIDTH / 2 - 80, y);
+        y += 30;
+
+        // clyde (Orange)
+        g.setColor(Color.ORANGE);
+        g.drawString("CLYDE", Constants.SCREEN_WIDTH / 2 - 80, y);
+
+        // instructions
+        g.setColor(Color.WHITE);
+        g.drawString("Use arrow keys to move", Constants.SCREEN_WIDTH / 2 - 90, y + 60);
     }
 
     // render pause screen
@@ -268,7 +244,7 @@ public class UIRender {
         g.fillRect(x + 20, y + 20, 20, 15);
     }
 
-    // draw buttone with text
+    // draw button with text
     private
     Rectangle drawButton(Graphics g, String text, int x, int y, int width, int height, boolean isActive) {
         // draw button background

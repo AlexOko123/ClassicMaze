@@ -106,13 +106,21 @@ public class Vector {
 
     // returns the vector as an array of integers (casting components)
     public int[] asInt() {
-        return new int[]{(int) x, (int) y};
+        return new int[]{(int)Math.round(x), (int)Math.round(y)};
     }
 
     // converts the vector to a string representation so that we can print it out
     @Override
     public String toString() {
-        return "<" + x + ", " + y + ">";
+        return "Vector(" + x + ", " + y + ")";
+    }
+
+    public Vector normalize() {
+        double mag = magnitude();
+        if (mag > 0) {
+            return new Vector(x / mag, y / mag);
+        }
+        return new Vector();
     }
 
 

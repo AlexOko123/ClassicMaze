@@ -26,6 +26,9 @@ public class GameController extends JPanel {
     private UIRender uiRender;
     private GhostAI ghostAI;
     private boolean isGameRunning;
+    private boolean deathDelay = false;
+    private double deathTimer = 0;
+    private final double DEATH_DELAY = 2.0; // 2 seconds delay
 
     public GameController() {
         // initialize the game window
@@ -35,6 +38,7 @@ public class GameController extends JPanel {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.add(this);
         frame.setResizable(false);
+        frame.setVisible(true);
 
         // handle window closing
         frame.addWindowListener(new WindowAdapter() {
@@ -70,7 +74,7 @@ public class GameController extends JPanel {
         setBackground();
 
         try {
-            // Read in maze file to set up maze
+            // ead in maze file to set up maze
             char[][] maze = FileReader.readMazeFile("pacMaze1.txt");
             System.out.println("Successfully loaded maze with dimensions: " +
                     maze.length + " rows x " + maze[0].length + " cols");
@@ -80,17 +84,17 @@ public class GameController extends JPanel {
             System.err.println("Error loading maze file: " + e.getMessage());
             System.out.println("Using emergency fallback maze");
 
-            // Minimal fallback maze
+            // minimal fallback maze
             char[][] fallbackMaze = {
                     {'X','+','X'},
                     {'+','.','+'},
                     {'X','+','X'}
             };
             this.nodes = new MazeGroup(fallbackMaze);
-            // initialize ghost AI with the maze nodes
-            this.ghostAI = new GhostAI(this.nodes);
         }
 
+        // initialize ghost AI with the maze nodes
+        this.ghostAI = new GhostAI(this.nodes);
 
         // initialize pacman with the first node in the nodeList
         if (!this.nodes.getNodeList().isEmpty()) {
@@ -134,10 +138,14 @@ public class GameController extends JPanel {
 
             // update ghosts
             if (ghostAI != null) {
+                // debug: print ghost count and positions
+                System.out.println("Updating " + ghostAI.getGhosts().size() + " ghosts");
                 ghostAI.update(dt, pacman);
+            } else {
+                System.out.println("WARNING: ghostAI is null!");
             }
 
-            this.checkEvents();
+            this.checkEvents(dt);
         }
 
         // render the game
@@ -146,13 +154,13 @@ public class GameController extends JPanel {
         repaint();
     }
 
-    public void checkEvents() {
-        // check if Pacman was caught by a ghost
-        if (ghostAI != null && ghostAI.checkPacmanCaught(pacman.getPosition())) {
-            // handle Pacman death
-            boolean gameStillGoing = gameState.pacmanDeath();
+    public void checkEvents(double dt) {
+        // if we're in death delay, count down the timer THIS MAY NOT WORK MIGHT NEED TO DEBUG
+        if (deathDelay) {
+            deathTimer -= dt;
+            if (deathTimer <= 0) {
+                deathDelay = false;
 
-            if (gameStillGoing) {
                 // reset positions but continue game
                 if (pacman != null) {
                     pacman = new Pacman(this.nodes.getNodeList().get(0));
@@ -160,9 +168,22 @@ public class GameController extends JPanel {
                 }
                 ghostAI.resetGhosts();
             }
+            return; // skip the rest of the checks during delay
         }
 
-        // heck for power pellet collection (example - will need to be implemented with a dot system)
+        // check if Pacman was caught by a ghost
+        if (ghostAI != null && ghostAI.checkPacmanCaught(pacman.getPosition())) {
+            // handle Pacman death
+            boolean gameStillGoing = gameState.pacmanDeath();
+
+            if (gameStillGoing) {
+                // Set up delay before resetting
+                deathDelay = true;
+                deathTimer = DEATH_DELAY;
+            }
+        }
+
+        // NEED METHOD for power pellet collection (example - will need to be implemented with a dot system)
         // if (checkPowerPelletCollected()) {
         //     ghostManager.frightenGhosts();
         // }
@@ -183,7 +204,11 @@ public class GameController extends JPanel {
 
             // render ghosts
             if (ghostAI != null) {
+                // Debug: Print rendering ghosts
+                System.out.println("Rendering " + ghostAI.getGhosts().size() + " ghosts");
                 ghostAI.render(screen);
+            } else {
+                System.out.println("WARNING: Cannot render ghosts - ghostAI is null!");
             }
         }
 
@@ -203,27 +228,53 @@ public class GameController extends JPanel {
 
     public static void main(String[] args) {
         // create a GameController object + start the game
-        GameController game = new GameController();
-        game.startGame();
+        SwingUtilities.invokeLater(() -> {
+            GameController game = new GameController();
+            game.startGame();
 
-        // game loop
-        while (game.isGameRunning) {
-            game.update();
-        }
+            // game loop
+            Timer gameTimer = new Timer(16, e -> game.update());
+            gameTimer.start();
+        });
     }
 
     private void resetGame() {
-        startGame();
+        // print debug info
+        System.out.println("Resetting game...");
 
-        if (ghostAI != null) {
-            ghostAI.resetGhosts();
+        // reset game state if needed
+        if (gameState.getCurrentState() != Constants.PLAYING) {
+            gameState.startGame();
         }
 
-        if (pacman != null) {
-            // reset pacman to starting position
-            pacman = new Pacman(this.nodes.getNodeList().get(0));
+        // create a new maze and nodes
+        try {
+            char[][] maze = FileReader.readMazeFile("pacMaze1.txt");
+            this.nodes = new MazeGroup(maze);
+        } catch (IOException e) {
+            System.err.println("Error loading maze file: " + e.getMessage());
+            char[][] fallbackMaze = {
+                    {'X','+','X'},
+                    {'+','.','+'},
+                    {'X','+','X'}
+            };
+            this.nodes = new MazeGroup(fallbackMaze);
+        }
+
+        // initialize ghost AI with the maze nodes
+        this.ghostAI = new GhostAI(this.nodes);
+
+        // reset Pacman
+        if (!this.nodes.getNodeList().isEmpty()) {
+            this.pacman = new Pacman(this.nodes.getNodeList().get(0));
             frame.addKeyListener(pacman);
+            frame.requestFocus();
         }
+
+        // reset time tracking
+        lastTime = Instant.now();
+
+        System.out.println("Game reset complete!");
     }
 
     private void handleKeyPress(KeyEvent e) {
@@ -247,15 +298,18 @@ public class GameController extends JPanel {
                 if (key == KeyEvent.VK_SPACE || key == KeyEvent.VK_P) {
                     gameState.togglePause();
                 } else if (key == KeyEvent.VK_ESCAPE) {
-                    // Reset to start screen
+                    // reset to start screen
                     gameState = new GameState();
                 }
                 break;
 
             case Constants.GAME_OVER:
                 if (key == KeyEvent.VK_SPACE) {
+                    // create a completely new game state
                     gameState = new GameState();
+                    gameState.startGame(); // make sure to transition to PLAYING state
                     resetGame();
+                    System.out.println("Game restarted!"); // debug output
                 }
                 break;
         }

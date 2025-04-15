@@ -19,9 +19,15 @@ public class FileReader {
             }
 
             // Convert to char[][]
-            char[][] maze = new char[lines.size()][];
-            for (int i = 0; i < lines.size(); i++) {
-                maze[i] = lines.get(i).toCharArray();
+            int rows = lines.size();
+            int cols = lines.get(0).length();
+
+            char[][] maze = new char[rows][cols];
+            for (int i = 0; i < rows; i++) {
+                String line = lines.get(i);
+                for (int j = 0; j < line.length() && j < cols; j++) {
+                    maze[i][j] = line.charAt(j);
+                }
             }
 
             return maze;
