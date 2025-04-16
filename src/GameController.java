@@ -74,7 +74,7 @@ public class GameController extends JPanel {
         setBackground();
 
         try {
-            // ead in maze file to set up maze
+            // read in maze file to set up maze
             char[][] maze = FileReader.readMazeFile("pacMaze1.txt");
             System.out.println("Successfully loaded maze with dimensions: " +
                     maze.length + " rows x " + maze[0].length + " cols");
@@ -146,6 +146,13 @@ public class GameController extends JPanel {
             }
 
             this.checkEvents(dt);
+        } else if (deathDelay && gameState.getCurrentState() == Constants.DEATH_ANIMATION) {
+            // during death animation, count down the delay
+            deathTimer -= dt;
+            if (deathTimer <= 0) {
+                deathDelay = false;
+                // we don't transition automatically - wait for user input
+            }
         }
 
         // render the game
@@ -175,9 +182,10 @@ public class GameController extends JPanel {
         if (ghostAI != null && ghostAI.checkPacmanCaught(pacman.getPosition())) {
             // handle Pacman death
             boolean gameStillGoing = gameState.pacmanDeath();
+            System.out.println("Pacman caught! Game continues: " + gameStillGoing);
 
             if (gameStillGoing) {
-                // Set up delay before resetting
+                // Set up delay before allowing reset
                 deathDelay = true;
                 deathTimer = DEATH_DELAY;
             }
@@ -199,22 +207,50 @@ public class GameController extends JPanel {
             // render nodes
             this.nodes.render(screen);
 
-            // render pacman
-            this.pacman.render(screen);
+            // render pacman only if not in death animation or game over
+            if (gameState.getCurrentState() != Constants.GAME_OVER) {
+                this.pacman.render(screen);
+            }
 
-            // render ghosts
-            if (ghostAI != null) {
-                // Debug: Print rendering ghosts
+            // render ghosts unless game over
+            if (ghostAI != null && gameState.getCurrentState() != Constants.GAME_OVER) {
+                // debug: print ghost count when rendering
                 System.out.println("Rendering " + ghostAI.getGhosts().size() + " ghosts");
                 ghostAI.render(screen);
-            } else {
-                System.out.println("WARNING: Cannot render ghosts - ghostAI is null!");
+            }
+
+            // render death animation if in that state
+            if (gameState.getCurrentState() == Constants.DEATH_ANIMATION) {
+                //renderDeathAnimation(screen);
             }
         }
 
-        // always render UI elements (score, lives, menus)
+        // always render UI elements (score, lives, game state messages)
         uiRender.render(screen);
     }
+
+   /* private void renderDeathAnimation(Graphics g) {
+        // calculate animation progress based on death timer
+        double animationProgress = 1.0 - (deathTimer / DEATH_DELAY);
+
+        // get pacman position
+        //int x = Pacman.get.getX();
+        //int y = Pacman.getPosition().getY();
+        //int size = Constants.
+        // draw death animation (example: shrinking circle)
+        g.setColor(Color.YELLOW);
+        int animSize = (int)(size * (1.0 - animationProgress));
+        if (animSize > 0) {
+            g.fillArc(
+                    x - animSize/2,
+                    y - animSize/2,
+                    animSize,
+                    animSize,
+                    0,
+                    360 - (int)(animationProgress * 360)
+            );
+        }
+    } */
 
     @Override
     protected void paintComponent(Graphics g) {

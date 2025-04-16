@@ -33,6 +33,7 @@ public class Constants {
     public static final int PLAYING = 1;
     public static final int PAUSED = 2;
     public static final int GAME_OVER = 3;
+    public static final int DEATH_ANIMATION = 4;
 
     // ghost behavior
     public static final int CHASE = 0;    // chase Pacman directly

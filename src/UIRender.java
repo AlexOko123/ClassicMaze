@@ -15,10 +15,11 @@ public class UIRender {
     private Font titleFont;
     private Font normalFont;
     private Font smallFont;
+    private Font arcadeFont;
 
     // colors for UI elements
     private final Color TEXT_COLOR = Color.WHITE;
-    private final Color MENU_BG_COLOR = new Color(0, 0, 0, 200); 
+    private final Color MENU_BG_COLOR = new Color(0, 0, 0, 200);
     private final Color HIGHLIGHT_COLOR = Color.YELLOW;
     private final Color GHOST_INFO_COLOR = new Color(0, 200, 255);
 
@@ -29,7 +30,12 @@ public class UIRender {
     // animation properties for certain UI elements
     private double animationTime = 0;
     private boolean blinkOn = true;
-    
+
+    // pacman animation properties
+    private double pacmanAnimTime = 0;
+    private int pacmanMouthAngle = 45;
+    private boolean pacmanMouthClosing = false;
+
     public UIRender(GameState gameState) {
         this.gameState = gameState;
 
@@ -37,11 +43,12 @@ public class UIRender {
         this.titleFont = new Font("Arial", Font.BOLD, 36);
         this.normalFont = new Font("Arial", Font.BOLD, 18);
         this.smallFont = new Font("Arial", Font.PLAIN, 14);
+        this.arcadeFont = new Font("Courier New", Font.BOLD, 20);
     }
-    
+
     // render all UI elements based on current game state
     public void render(Graphics g) {
-        // Always render score and lives during gameplay
+        // always render score and lives during gameplay
         if (gameState.getCurrentState() != Constants.START) {
             renderGameInfo(g);
         }
@@ -59,9 +66,13 @@ public class UIRender {
             case Constants.GAME_OVER:
                 renderGameOverScreen(g);
                 break;
+
+            case Constants.DEATH_ANIMATION:
+                renderDeathScreen(g);
+                break;
         }
     }
-    
+
     // update animation timers for UI elements
     public void update(double dt) {
         // update animation timer
@@ -72,16 +83,37 @@ public class UIRender {
             animationTime = 0;
             blinkOn = !blinkOn;
         }
+
+        // update Pacman animation
+        pacmanAnimTime += dt;
+        if (pacmanAnimTime >= 0.05) {
+            pacmanAnimTime = 0;
+
+            // animate mouth opening and closing
+            if (pacmanMouthClosing) {
+                pacmanMouthAngle += 5;
+                if (pacmanMouthAngle >= 45) {
+                    pacmanMouthAngle = 45;
+                    pacmanMouthClosing = false;
+                }
+            } else {
+                pacmanMouthAngle -= 5;
+                if (pacmanMouthAngle <= 0) {
+                    pacmanMouthAngle = 0;
+                    pacmanMouthClosing = true;
+                }
+            }
+        }
     }
-    
+
     // render game information (score, lives, levels)
     private void renderGameInfo(Graphics g) {
-        // draw the top info bar 
+        // draw the top info bar
         g.setColor(new Color(0, 0, 0, 150));
         g.fillRect(0, 0, SCREEN_WIDTH, 70);
 
         g.setColor(TEXT_COLOR);
-        g.setFont(normalFont);
+        g.setFont(arcadeFont);
 
         // score
         g.drawString("SCORE: " + gameState.getScore(), 10, 25);
@@ -89,55 +121,157 @@ public class UIRender {
         // lives
         g.drawString("LIVES: " + gameState.getLives(), 10, 50);
 
-        // level 
+        // level
         String levelText = "LEVEL: " + gameState.getLevel();
         FontMetrics fm = g.getFontMetrics();
         int levelTextWidth = fm.stringWidth(levelText);
         g.drawString(levelText, SCREEN_WIDTH - levelTextWidth - 10, 25);
 
         // draw Pacman icons for lives
-        int pacmanSize = 12;
+        int pacmanSize = 16;
         for (int i = 0; i < gameState.getLives(); i++) {
             g.setColor(Color.YELLOW);
-            g.fillOval(200 + i * (pacmanSize + 5), 40, pacmanSize, pacmanSize);
+            g.fillArc(200 + i * (pacmanSize + 10), 40, pacmanSize, pacmanSize, 30, 300);
         }
     }
 
 
     // render the start screen
     private void renderStartScreen(Graphics g) {
+        // Draw classic arcade-style background
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+        // draw Pacman logo at the top
         g.setColor(Color.YELLOW);
-        g.setFont(new Font("Arial", Font.BOLD, 30));
-        g.drawString("PACMAN", Constants.SCREEN_WIDTH / 2 - 80, 150);
+        g.setFont(new Font("Arial", Font.BOLD, 48));
+        String title = "PACMAN";
+        FontMetrics titleMetrics = g.getFontMetrics();
+        g.drawString(title, (SCREEN_WIDTH - titleMetrics.stringWidth(title)) / 2, 100);
 
-        g.setFont(new Font("Arial", Font.PLAIN, 16));
-        g.drawString("Press SPACE to start", Constants.SCREEN_WIDTH / 2 - 90, 200);
+        // draw animated Pacman
+        drawAnimatedPacman(g, SCREEN_WIDTH / 2 - 50, 150, 40);
 
-        // add ghost names with their colors
-        int y = 250;
+        // draw ghost parade
+        drawGhostParade(g, SCREEN_WIDTH / 2 + 10, 150);
+
+        // draw game controls section
+        g.setColor(Color.WHITE);
+        g.setFont(arcadeFont);
+        int controlsY = 250;
+
+        g.drawString("GAME CONTROLS", SCREEN_WIDTH / 2 - 80, controlsY);
+        controlsY += 30;
+
+        g.setFont(normalFont);
+        g.drawString("↑ or W: Move Up", SCREEN_WIDTH / 2 - 80, controlsY);
+        controlsY += 25;
+
+        g.drawString("↓ or S: Move Down", SCREEN_WIDTH / 2 - 80, controlsY);
+        controlsY += 25;
+
+        g.drawString("← or A: Move Left", SCREEN_WIDTH / 2 - 80, controlsY);
+        controlsY += 25;
+
+        g.drawString("→ or D: Move Right", SCREEN_WIDTH / 2 - 80, controlsY);
+        controlsY += 25;
+
+        g.drawString("P: Pause Game", SCREEN_WIDTH / 2 - 80, controlsY);
+        controlsY += 25;
+
+        g.drawString("ESC: Quit to Menu", SCREEN_WIDTH / 2 - 80, controlsY);
+        controlsY += 40;
+
+        // draw ghosts with their descriptions
+        drawGhostInfo(g, controlsY);
+
+        // draw blinking start prompt
+        if (blinkOn) {
+            g.setColor(Color.YELLOW);
+            g.setFont(arcadeFont);
+            String startPrompt = "PRESS SPACE TO START";
+            FontMetrics fm = g.getFontMetrics();
+            g.drawString(startPrompt, (SCREEN_WIDTH - fm.stringWidth(startPrompt)) / 2, SCREEN_HEIGHT - 80);
+        }
+
+        // draw copyright
+        g.setColor(Color.WHITE);
+        g.setFont(smallFont);
+        String copyright = "© CLASSIC ARCADE REMAKE";
+        FontMetrics copyrightFm = g.getFontMetrics();
+        g.drawString(copyright, (SCREEN_WIDTH - copyrightFm.stringWidth(copyright)) / 2, SCREEN_HEIGHT - 20);
+    }
+
+    // draw animated Pacman for start screen
+    private void drawAnimatedPacman(Graphics g, int x, int y, int size) {
+        g.setColor(Color.YELLOW);
+        g.fillArc(x, y, size, size, pacmanMouthAngle, 360 - 2 * pacmanMouthAngle);
+    }
+
+    // draw ghost parade for start screen
+    private void drawGhostParade(Graphics g, int x, int y) {
+        int ghostSize = 20;
+        Color[] ghostColors = {Color.RED, Color.PINK, new Color(0, 255, 255), Color.ORANGE};
+
+        for (int i = 0; i < ghostColors.length; i++) {
+            drawSimpleGhost(g, x + i * 30, y + (i % 2) * 5, ghostSize, ghostColors[i]);
+        }
+    }
+
+    // draw ghost with name and info
+    private void drawGhostInfo(Graphics g, int startY) {
+        int x = SCREEN_WIDTH / 2 - 80;
+        int y = startY;
+        int size = 20;
 
         // blinky (Red)
         g.setColor(Color.RED);
-        g.drawString("BLINKY", Constants.SCREEN_WIDTH / 2 - 80, y);
+        drawSimpleGhost(g, x - 30, y - 15, size, Color.RED);
+        g.drawString("BLINKY - Chases directly", x, y);
         y += 30;
 
         // pinky (Pink)
         g.setColor(Color.PINK);
-        g.drawString("PINKY", Constants.SCREEN_WIDTH / 2 - 80, y);
+        drawSimpleGhost(g, x - 30, y - 15, size, Color.PINK);
+        g.drawString("PINKY - Ambushes ahead", x, y);
         y += 30;
 
         // inky (Cyan)
         g.setColor(new Color(0, 255, 255));
-        g.drawString("INKY", Constants.SCREEN_WIDTH / 2 - 80, y);
+        drawSimpleGhost(g, x - 30, y - 15, size, new Color(0, 255, 255));
+        g.drawString("INKY - Unpredictable", x, y);
         y += 30;
 
         // clyde (Orange)
         g.setColor(Color.ORANGE);
-        g.drawString("CLYDE", Constants.SCREEN_WIDTH / 2 - 80, y);
+        drawSimpleGhost(g, x - 30, y - 15, size, Color.ORANGE);
+        g.drawString("CLYDE - Moves randomly", x, y);
+    }
 
-        // instructions
+    // draw a simple ghost
+    private void drawSimpleGhost(Graphics g, int x, int y, int size, Color ghostColor) {
+        // ghost body
+        g.setColor(ghostColor);
+        g.fillArc(x, y, size, size, 0, 180);
+        g.fillRect(x, y + size / 2, size, size / 2);
+
+        // wavy bottom
+        int waveWidth = size / 5;
+        for (int i = 0; i < 5; i++) {
+            g.fillArc(x + i * waveWidth, y + size, waveWidth, size / 4, 180, 180);
+        }
+
+        // eyes
         g.setColor(Color.WHITE);
-        g.drawString("Use arrow keys to move", Constants.SCREEN_WIDTH / 2 - 90, y + 60);
+        int eyeSize = size / 3;
+        g.fillOval(x + size / 5, y + size / 3, eyeSize, eyeSize);
+        g.fillOval(x + size * 3 / 5 - eyeSize / 2, y + size / 3, eyeSize, eyeSize);
+
+        // pupils
+        g.setColor(Color.BLACK);
+        int pupilSize = eyeSize / 2;
+        g.fillOval(x + size / 4, y + size / 3 + eyeSize / 4, pupilSize, pupilSize);
+        g.fillOval(x + size * 3 / 5 - pupilSize / 2, y + size / 3 + eyeSize / 4, pupilSize, pupilSize);
     }
 
     // render pause screen
@@ -155,10 +289,10 @@ public class UIRender {
         g.drawString(title, (SCREEN_WIDTH - titleWidth) / 2, SCREEN_HEIGHT / 3);
 
         // draw menu options
-        g.setFont(normalFont);
+        g.setFont(arcadeFont);
         g.setColor(TEXT_COLOR);
         String[] menuOptions = {
-                "PRESS SPACE TO RESUME",
+                "PRESS SPACE OR P TO RESUME",
                 "PRESS ESC TO QUIT"
         };
 
@@ -179,6 +313,24 @@ public class UIRender {
         g.drawString(scoreText, (SCREEN_WIDTH - scoreWidth) / 2, SCREEN_HEIGHT * 3 / 4);
     }
 
+    // render death animation screen
+    private void renderDeathScreen(Graphics g) {
+        // still show the game elements behind
+
+        // draw a semi-transparent overlay
+        g.setColor(new Color(0, 0, 0, 100));
+        g.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+        if (blinkOn) {
+            g.setColor(Color.YELLOW);
+            g.setFont(arcadeFont);
+            String prompt = "PACMAN CAUGHT! PRESS SPACE TO CONTINUE";
+            FontMetrics fm = g.getFontMetrics();
+            int promptWidth = fm.stringWidth(prompt);
+            g.drawString(prompt, (SCREEN_WIDTH - promptWidth) / 2, SCREEN_HEIGHT / 2);
+        }
+    }
+
     // render the game over screen
     private void renderGameOverScreen(Graphics g) {
         // draw background
@@ -194,7 +346,7 @@ public class UIRender {
         g.drawString(gameOver, (SCREEN_WIDTH - gameOverWidth) / 2, SCREEN_HEIGHT / 3);
 
         // draw final score
-        g.setFont(normalFont);
+        g.setFont(arcadeFont);
         g.setColor(HIGHLIGHT_COLOR);
         String finalScore = "FINAL SCORE: " + gameState.getScore();
         FontMetrics fmScore = g.getFontMetrics();

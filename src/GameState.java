@@ -43,6 +43,18 @@ public class GameState {
         this.currentState = Constants.GAME_OVER;
     }
 
+    // set the death animation state
+    public void setDeathAnimationState() {
+        this.currentState = Constants.DEATH_ANIMATION;
+    }
+
+    // continue game after death (when space is pressed)
+    public void continueAfterDeath() {
+        if (currentState == Constants.DEATH_ANIMATION) {
+            currentState = Constants.PLAYING;
+        }
+    }
+
     // handle pacman death, minus a life or trigger game over
     // return true if game continues, false if game over
     public boolean pacmanDeath() {
@@ -51,6 +63,8 @@ public class GameState {
             gameOver();
             return false;
         }
+        // Set death animation state
+        setDeathAnimationState();
         return true;
     }
 
@@ -97,5 +111,10 @@ public class GameState {
     // return true if game is paused, OW false
     public boolean isPaused() {
         return currentState == Constants.PAUSED;
+    }
+
+    // return true if in death animation, OW false
+    public boolean inDeathAnimation() {
+        return currentState == Constants.DEATH_ANIMATION;
     }
 }
