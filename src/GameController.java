@@ -1,10 +1,7 @@
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import javax.swing.JFrame;
@@ -301,12 +298,12 @@ public class GameController extends JPanel {
         this.ghostAI = new GhostAI(this.nodes);
 
         // reset Pacman
-        if (!this.nodes.getNodeList().isEmpty()) {
-            this.pacman = new Pacman(this.nodes.getNodeList().get(0));
-            frame.addKeyListener(pacman);
-            frame.requestFocus();
-        }
+       if (!this.nodes.getNodeList().isEmpty()) {
+          this.pacman = new Pacman(this.nodes.getNodeList().get(0));
+          frame.addKeyListener(pacman);
+           frame.requestFocus();
 
+        }
         // reset time tracking
         lastTime = Instant.now();
 
@@ -348,6 +345,14 @@ public class GameController extends JPanel {
                     System.out.println("Game restarted!"); // debug output
                 }
                 break;
+
+            case Constants.DEATH_ANIMATION:
+                if (key == KeyEvent.VK_SPACE) {
+                    gameState.continueAfterDeath();
+                    resetGame();  // Reset level after death
+                }
+                break;
+
         }
     }
 
