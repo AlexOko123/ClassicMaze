@@ -321,6 +321,7 @@ public class Ghost {
     }
 
     // render ghost on the screen
+
     public void render(Graphics g) {
         // draw the ghost with appropriate color based on the game mode
         Color renderColor;
@@ -378,7 +379,6 @@ public class Ghost {
                 p[1] - radius/3 + pupilY[dirIndex] * 2,
                 pupilSize, pupilSize);
     }
-
     // getters and setters
 
     public Vector getPosition() {

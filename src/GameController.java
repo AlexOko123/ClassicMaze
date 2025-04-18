@@ -271,9 +271,9 @@ public class GameController extends JPanel {
         });
     }
 
-    private void resetGame() {
+    public void resetGame() {
         // print debug info
-        System.out.println("Resetting game...");
+        System.out.println("Fully resetting game...");
 
         // reset game state if needed
         if (gameState.getCurrentState() != Constants.PLAYING) {
@@ -297,13 +297,17 @@ public class GameController extends JPanel {
         // initialize ghost AI with the maze nodes
         this.ghostAI = new GhostAI(this.nodes);
 
-        // reset Pacman
-       if (!this.nodes.getNodeList().isEmpty()) {
-          this.pacman = new Pacman(this.nodes.getNodeList().get(0));
-          frame.addKeyListener(pacman);
-           frame.requestFocus();
-
+        // reset Pacman - ensure old listeners are removed
+        if (pacman != null) {
+            frame.removeKeyListener(pacman);
         }
+
+        if (!this.nodes.getNodeList().isEmpty()) {
+            this.pacman = new Pacman(this.nodes.getNodeList().get(0));
+            frame.addKeyListener(pacman);
+            frame.requestFocus();
+        }
+
         // reset time tracking
         lastTime = Instant.now();
 
@@ -322,8 +326,11 @@ public class GameController extends JPanel {
                 break;
 
             case Constants.PLAYING:
-                if (key == KeyEvent.VK_P || key == KeyEvent.VK_ESCAPE) {
+                if (key == KeyEvent.VK_P) {
                     gameState.togglePause();
+                } else if (key == KeyEvent.VK_ESCAPE) {
+                    // close the application completely
+                    System.exit(0);
                 }
                 break;
 
@@ -331,29 +338,48 @@ public class GameController extends JPanel {
                 if (key == KeyEvent.VK_SPACE || key == KeyEvent.VK_P) {
                     gameState.togglePause();
                 } else if (key == KeyEvent.VK_ESCAPE) {
-                    // reset to start screen
-                    gameState = new GameState();
+                    // close the application completely
+                    System.exit(0);
                 }
                 break;
 
             case Constants.GAME_OVER:
                 if (key == KeyEvent.VK_SPACE) {
-                    // create a completely new game state
+                    // complete restart - create new game state and entities
                     gameState = new GameState();
-                    gameState.startGame(); // make sure to transition to PLAYING state
-                    resetGame();
-                    System.out.println("Game restarted!"); // debug output
+                    gameState.startGame();
+                    resetGame(); // this method needs to be fixed too
+                    frame.removeKeyListener(pacman); // remove old listener
+                    frame.addKeyListener(pacman);    // add new listener
+                    System.out.println("Game restarted from game over!");
+                } else if (key == KeyEvent.VK_ESCAPE) {
+                    // close the application completely
+                    System.exit(0);
                 }
                 break;
 
             case Constants.DEATH_ANIMATION:
                 if (key == KeyEvent.VK_SPACE) {
                     gameState.continueAfterDeath();
-                    resetGame();  // Reset level after death
+                    resetPositions();  // only reset positions, not the whole game
+                } else if (key == KeyEvent.VK_ESCAPE) {
+                    // close the application completely
+                    System.exit(0);
                 }
                 break;
-
         }
     }
 
+    //  new method to reset only positions (for death)
+    private void resetPositions() {
+        // reset pacman position
+        if (!this.nodes.getNodeList().isEmpty()) {
+            this.pacman = new Pacman(this.nodes.getNodeList().get(0));
+            frame.addKeyListener(pacman);
+            frame.requestFocus();
+        }
+
+        // reset ghost positions
+        ghostAI.resetGhosts();
+    }
 }
