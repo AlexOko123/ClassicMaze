@@ -22,6 +22,7 @@ public class GhostAI {
     private final double[] scatterTimes = {7.0, 7.0, 5.0, 5.0};
     private final double[] chaseTimes = {20.0, 20.0, 20.0, 999.0}; // last one is "permanent"
     private int patternIndex;
+    private double [] releaseTimers = {0, 4, 8, 12}; // seconds delay per ghost
 
     // debug flag
     private boolean debug = false;
@@ -119,6 +120,15 @@ public class GhostAI {
         for (Ghost ghost : ghosts) {
             ghost.update(dt, pacman);
         }
+
+        // release each ghost one by one
+        for (int i = 0; i < ghosts.size(); i++){
+            if (releaseTimers[i] <= 0) {
+                ghosts.get(i).update(dt, pacman);
+            } else {
+                releaseTimers[i] -= dt;
+            }
+        }
     }
 
     // enable or disable debug mode
@@ -188,10 +198,11 @@ public class GhostAI {
     // check if any ghost caught pacman, true if caught, OW false
     public boolean checkPacmanCaught(Vector pacmanPos) {
         for (Ghost ghost : ghosts) {
-            if (ghost.isCollidingWith(pacmanPos) &&
-                    ghost.getBehavior() != Constants.FRIGHTENED &&
-                    ghost.getBehavior() != Constants.EATEN) {
-                return true;
+            if (ghost.isCollidingWith(pacmanPos)) {
+                if (ghost.getBehavior() != Constants.FRIGHTENED && ghost.getBehavior() != Constants.EATEN) {
+                    return true;
+            }
+
             }
         }
         return false;
@@ -226,6 +237,12 @@ public class GhostAI {
         frightenedTimer = 0;
         isChaseMode = false;
         patternIndex = 0;
+    }
+
+    public void resetAfterDeath() {
+        resetGhosts();
+
+        releaseTimers = new double[] {0, 4, 8, 12};
     }
 
     // render all ghosts on the screen

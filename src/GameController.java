@@ -346,11 +346,11 @@ public class GameController extends JPanel {
             case Constants.GAME_OVER:
                 if (key == KeyEvent.VK_SPACE) {
                     // complete restart - create new game state and entities
-                    gameState = new GameState();
+                    //gameState = new GameState();
                     gameState.startGame();
                     resetGame(); // this method needs to be fixed too
-                    frame.removeKeyListener(pacman); // remove old listener
-                    frame.addKeyListener(pacman);    // add new listener
+                    //frame.removeKeyListener(pacman); // remove old listener
+                    //frame.addKeyListener(pacman);    // add new listener
                     System.out.println("Game restarted from game over!");
                 } else if (key == KeyEvent.VK_ESCAPE) {
                     // close the application completely
@@ -380,6 +380,6 @@ public class GameController extends JPanel {
         }
 
         // reset ghost positions
-        ghostAI.resetGhosts();
+        ghostAI.resetAfterDeath();
     }
 }

@@ -1,3 +1,4 @@
+
 // this class handles rendering of UI elements like score, lives, and game state transitions
 // start screen, pause screen, game over screen
 

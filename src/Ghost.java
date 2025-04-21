@@ -19,7 +19,8 @@ public class Ghost {
     // node-based movement properties
     private Maze currentNode;    // current node the ghost is on
     private Maze targetNode;     // target node the ghost is moving toward
-    private Maze scatterTarget;  // corner node to move to when in scatter mode
+    private Maze scatterTarget;// corner node to move to when in scatter mode
+
 
     // target in chase mode (usually Pacman or a position near Pacman)
     private Vector chaseTarget;
@@ -79,6 +80,7 @@ public class Ghost {
                 }
                 break;
         }
+
     }
 
     // upadte the chase target based on the ghost type (differnt targtes for each ghost)
@@ -392,6 +394,7 @@ public class Ghost {
     public int getGhostType() {
         return ghostType;
     }
+
 
 
 }

@@ -117,4 +117,10 @@ public class GameState {
     public boolean inDeathAnimation() {
         return currentState == Constants.DEATH_ANIMATION;
     }
+
+    public void restartGame() {
+        resetStats();
+        currentState = Constants.START; // i might try PLAYING if this doesn't work
+    }
+
 }
