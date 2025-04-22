@@ -133,6 +133,17 @@ public class GameController extends JPanel {
             // update pacman with the time
             this.pacman.update(dt);
 
+            for (Pellet pellet : nodes.getPellets()) {
+                if (!pellet.isEaten()) {
+                    double distance = pellet.getPosition().subtract(pacman.getPosition()).magnitude();
+                    if (distance < 10) { // Pacman close enough
+                        pellet.eat();
+                        gameState.addScore(Constants.DOT_SCORE); // +10 points
+                        System.out.println("Pellet eaten! Score: " + gameState.getScore());
+                    }
+                }
+            }
+
             // update ghosts
             if (ghostAI != null) {
                 // debug: print ghost count and positions
@@ -203,6 +214,8 @@ public class GameController extends JPanel {
         if (gameState.getCurrentState() != Constants.START) {
             // render nodes
             this.nodes.render(screen);
+
+            this.nodes.renderPellets(screen);
 
             // render pacman only if not in death animation or game over
             if (gameState.getCurrentState() != Constants.GAME_OVER) {

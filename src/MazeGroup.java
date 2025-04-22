@@ -6,15 +6,39 @@ import java.awt.Color;
 public class MazeGroup {
     private List<Maze> nodeList;
     private char[][] mazeData;
+    private List<Pellet> pellets;
 
     public MazeGroup(char[][] maze) {
         this.nodeList = new ArrayList<>();
+        this.pellets= new ArrayList<>();
         this.mazeData = maze;
         buildNodeNetwork(maze);
-
+        buildPellets(maze);
     }
 
-        private void buildNodeNetwork(char[][] maze) {
+
+    private void buildPellets(char[][] maze) {
+        for (int row = 0; row < maze.length; row++) {
+            for (int col = 0; col < maze[row].length; col++) {
+                if (maze[row][col] == Constants.PATH) { // '.' tile
+                    int x = col * Constants.TILE_WIDTH + Constants.TILE_WIDTH/2;
+                    int y = row * Constants.TILE_HEIGHT + Constants.TILE_HEIGHT/2;
+                    pellets.add(new Pellet(new Vector(x, y)));
+                }
+            }
+        }
+    }
+    public List<Pellet> getPellets() {
+        return pellets;
+    }
+
+    public void renderPellets(Graphics g) {
+        for (Pellet pellet : pellets) {
+            pellet.render(g);
+        }
+    }
+
+    private void buildNodeNetwork(char[][] maze) {
             // Create all nodes
             Maze[][] nodeGrid = new Maze[maze.length][maze[0].length];
             for (int row = 0; row < maze.length; row++) {
