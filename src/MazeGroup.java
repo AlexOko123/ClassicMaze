@@ -43,11 +43,12 @@ public class MazeGroup {
             Maze[][] nodeGrid = new Maze[maze.length][maze[0].length];
             for (int row = 0; row < maze.length; row++) {
                 for (int col = 0; col < maze[row].length; col++) {
-                    if (maze[row][col] == '+') {
+                    if (maze[row][col] == '+' || maze[row][col]== '.') {
                         nodeGrid[row][col] = new Maze(
-                                col * Constants.TILE_WIDTH,
-                                row * Constants.TILE_HEIGHT
+                                col * Constants.TILE_WIDTH + Constants.TILE_WIDTH / 2,
+                                row * Constants.TILE_HEIGHT + Constants.TILE_HEIGHT / 2
                         );
+
                         nodeList.add(nodeGrid[row][col]);
                     }
                 }
