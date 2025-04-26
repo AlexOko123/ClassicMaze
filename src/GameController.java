@@ -53,6 +53,7 @@ public class GameController extends JPanel {
         this.uiRender = new UIRender(gameState);
         this.isGameRunning = true;
 
+
         // key listener for global game contorls
         frame.addKeyListener(new KeyAdapter() {
             @Override
@@ -77,6 +78,7 @@ public class GameController extends JPanel {
                     maze.length + " rows x " + maze[0].length + " cols");
 
             this.nodes = new MazeGroup(maze);
+
         } catch (IOException e) {
             System.err.println("Error loading maze file: " + e.getMessage());
             System.out.println("Using emergency fallback maze");
@@ -139,6 +141,7 @@ public class GameController extends JPanel {
                     if (distance < 10) { // Pacman close enough
                         pellet.eat();
                         gameState.addScore(Constants.DOT_SCORE); // +10 points
+                        SoundManager.playSound("sounds/eat_pellet.wav");
                         System.out.println("Pellet eaten! Score: " + gameState.getScore());
                     }
                 }
@@ -190,6 +193,7 @@ public class GameController extends JPanel {
         if (ghostAI != null && ghostAI.checkPacmanCaught(pacman.getPosition())) {
             // handle Pacman death
             boolean gameStillGoing = gameState.pacmanDeath();
+            SoundManager.playSound("sounds/death.wav");
             System.out.println("Pacman caught! Game continues: " + gameStillGoing);
 
             if (gameStillGoing) {
