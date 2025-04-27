@@ -17,6 +17,10 @@ public class Pacman implements KeyListener {
     private int[] color;
     private Maze node;
     private Maze target;
+    private double mouthAngle = 45;
+    private boolean mouthClosing = false;
+    private double animTimer = 0;
+
 
     // keep track of currently pressed keys
     private boolean upPressed = false;
@@ -102,6 +106,21 @@ public class Pacman implements KeyListener {
 
         int newDirection = getValidKey();
 
+        // update mouth animations
+        animTimer += dt;
+        if (animTimer >= 0.05) { // animation speed
+            animTimer = 0;
+
+            // animate mouth open and close
+            if (mouthClosing) {
+                mouthAngle += 5;
+                if (mouthAngle >= 45) {
+                    mouthAngle = 45;
+                    mouthClosing = true;
+                }
+            }
+        }
+
         if (this.overshot()) {
             this.node = this.target;
             this.target = this.getNewTarget(newDirection);
@@ -119,6 +138,7 @@ public class Pacman implements KeyListener {
                 this.reverseDirection();
             }
         }
+
     }
 
     public int getValidKey() {
@@ -136,11 +156,37 @@ public class Pacman implements KeyListener {
         }
         return Constants.STOP;
     }
+
     // method visually represents pacman on the screen as a colored circle at its current position
     public void render(Graphics g) {
         int[] p = this.position.asInt();
         g.setColor(new Color(color[0], color[1], color[2]));
-        g.fillOval(p[0] - radius, p[1] - radius, radius * 2, radius * 2);
+
+        // starting angle for pacman's mouth based on direction
+        int startAngle = 0;
+
+        // determine start angle based on direction
+        switch (direction) {
+            case Constants.RIGHT:
+                startAngle = 0;
+                break;
+            case Constants.DOWN:
+                startAngle = 90;
+                break;
+            case Constants.LEFT:
+                startAngle = 180;
+                break;
+            case Constants.UP:
+                startAngle = 270;
+                break;
+        }
+
+        // don't animate mouth if not moving
+        int actualMouthAngle = (direction == Constants.STOP) ? 0 : (int)mouthAngle;
+
+        // draw Pacman with mouth
+        g.fillArc(p[0] - radius, p[1] - radius, radius * 2, radius * 2,
+                startAngle + actualMouthAngle, 360 - 2 * actualMouthAngle);
     }
 
     // KeyListener implementation

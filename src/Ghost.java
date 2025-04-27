@@ -41,7 +41,7 @@ public class Ghost {
 
         // set movement properties
         this.direction = Constants.STOP;
-        this.speed = 80 * Constants.TILE_WIDTH/16; // making them slower than Pacman
+        this.speed = 70 * Constants.TILE_WIDTH/16; // making them slower than Pacman
         this.radius = 8;
         this.color = ghostColor;
 
@@ -325,61 +325,100 @@ public class Ghost {
     // render ghost on the screen
 
     public void render(Graphics g) {
-        // draw the ghost with appropriate color based on the game mode
+        // get position as integers
+        int[] p = this.position.asInt();
         Color renderColor;
 
+        // set color based on behavior
         switch (behavior) {
             case Constants.FRIGHTENED:
                 renderColor = Color.BLUE;
                 break;
             case Constants.EATEN:
-                renderColor = Color.WHITE;
+                renderColor = Color.WHITE; // Eyes only when eaten
                 break;
             default:
                 renderColor = color;
                 break;
         }
 
-        // drawing the ghost body
-        int[] p = this.position.asInt();
+        // draw ghost body - classic ghost shape
+        int ghostWidth = radius * 2;
+        int ghostHeight = radius * 2;
+
+        // body fill
         g.setColor(renderColor);
-        g.fillOval(p[0] - radius, p[1] - radius, radius * 2, radius * 2);
 
-        // draw eyes
-        g.setColor(Color.WHITE);
-        int eyeSize = radius / 2;
-        g.fillOval(p[0] - radius/2, p[1] - radius/3, eyeSize, eyeSize);
-        g.fillOval(p[0] + radius/2 - eyeSize, p[1] - radius/3, eyeSize, eyeSize);
+        // main body - top half (rounded)
+        g.fillArc(p[0] - radius, p[1] - radius, ghostWidth, ghostHeight, 0, 180);
 
-        // draw pupils based on direction
-        g.setColor(Color.BLACK);
-        int pupilSize = eyeSize / 2;
+        // main body - bottom rectangle
+        g.fillRect(p[0] - radius, p[1], ghostWidth, radius);
 
-        int[] pupilX = {0, 0, -1, 1}; // UP, DOWN, LEFT, RIGHT
-        int[] pupilY = {-1, 1, 0, 0}; // UP, DOWN, LEFT, RIGHT
-
-        int dirIndex = 0;
-        switch (direction) {
-            case Constants.UP:
-                dirIndex = 0;
-                break;
-            case Constants.DOWN:
-                dirIndex = 1;
-                break;
-            case Constants.LEFT:
-                dirIndex = 2;
-                break;
-            case Constants.RIGHT:
-                dirIndex = 3;
-                break;
+        // draw the wavy bottom of the ghost
+        int waveCount = 3; // Number of waves at the bottom
+        int waveWidth = ghostWidth / waveCount;
+        for (int i = 0; i < waveCount; i++) {
+            g.fillArc(p[0] - radius + i * waveWidth, p[1] + radius - waveWidth/2,
+                    waveWidth, waveWidth, 180, 180);
         }
 
-        g.fillOval(p[0] - radius/2 + pupilX[dirIndex] * 2,
-                p[1] - radius/3 + pupilY[dirIndex] * 2,
-                pupilSize, pupilSize);
-        g.fillOval(p[0] + radius/2 - eyeSize + pupilX[dirIndex] * 2,
-                p[1] - radius/3 + pupilY[dirIndex] * 2,
-                pupilSize, pupilSize);
+        // if the ghost is eaten, only draw eyes
+        if (behavior != Constants.EATEN) {
+            // draw eyes (white part)
+            g.setColor(Color.WHITE);
+            int eyeSize = radius / 2;
+            g.fillOval(p[0] - radius/2 - eyeSize/2, p[1] - radius/4, eyeSize, eyeSize);
+            g.fillOval(p[0] + radius/2 - eyeSize/2, p[1] - radius/4, eyeSize, eyeSize);
+
+            // draw pupils based on direction
+            g.setColor(Color.BLACK);
+            int pupilSize = eyeSize / 2;
+
+            // pupil offsets based on direction
+            int[] pupilXOffset = {0, 0, -pupilSize/2, pupilSize/2}; // UP, DOWN, LEFT, RIGHT
+            int[] pupilYOffset = {-pupilSize/2, pupilSize/2, 0, 0}; // UP, DOWN, LEFT, RIGHT
+
+            int dirIndex = 0;
+            switch (direction) {
+                case Constants.UP:
+                    dirIndex = 0;
+                    break;
+                case Constants.DOWN:
+                    dirIndex = 1;
+                    break;
+                case Constants.LEFT:
+                    dirIndex = 2;
+                    break;
+                case Constants.RIGHT:
+                    dirIndex = 3;
+                    break;
+            }
+
+            g.fillOval(p[0] - radius/2 - eyeSize/2 + pupilSize/4 + pupilXOffset[dirIndex],
+                    p[1] - radius/4 + pupilSize/4 + pupilYOffset[dirIndex],
+                    pupilSize, pupilSize);
+            g.fillOval(p[0] + radius/2 - eyeSize/2 + pupilSize/4 + pupilXOffset[dirIndex],
+                    p[1] - radius/4 + pupilSize/4 + pupilYOffset[dirIndex],
+                    pupilSize, pupilSize);
+        } else {
+            // eyes only when eaten
+            g.setColor(Color.WHITE);
+            int eyeSize = radius / 2;
+            g.fillOval(p[0] - radius/2 - eyeSize/2, p[1] - radius/4, eyeSize, eyeSize);
+            g.fillOval(p[0] + radius/2 - eyeSize/2, p[1] - radius/4, eyeSize, eyeSize);
+
+            // pupils looking in direction of movement
+            g.setColor(Color.BLACK);
+            int pupilSize = eyeSize / 2;
+            int dirIndex = (direction == Constants.LEFT || direction == Constants.RIGHT) ? direction : 0;
+            int pupilXOffset = (dirIndex == Constants.LEFT) ? -pupilSize/2 : (dirIndex == Constants.RIGHT ? pupilSize/2 : 0);
+
+            g.fillOval(p[0] - radius/2 - eyeSize/2 + pupilSize/4 + pupilXOffset,
+                    p[1] - radius/4 + pupilSize/4, pupilSize, pupilSize);
+            g.fillOval(p[0] + radius/2 - eyeSize/2 + pupilSize/4 + pupilXOffset,
+                    p[1] - radius/4 + pupilSize/4, pupilSize, pupilSize);
+        }
     }
     // getters and setters
 

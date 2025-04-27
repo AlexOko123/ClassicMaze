@@ -116,19 +116,23 @@ public class GhostAI {
         // update mode timers
         updateTimers(dt);
 
-        // update each ghost
-        for (Ghost ghost : ghosts) {
-            ghost.update(dt, pacman);
-        }
+        // release ghosts one by one based on timers
+        for (int i = 0; i < ghosts.size(); i++) {
+            Ghost ghost = ghosts.get(i);
 
-        // release each ghost one by one
-        for (int i = 0; i < ghosts.size(); i++){
+            // only update ghosts that have been released
             if (releaseTimers[i] <= 0) {
-                ghosts.get(i).update(dt, pacman);
+                ghost.update(dt, pacman);
             } else {
                 releaseTimers[i] -= dt;
+                // keep ghost in home position until released
+                //ghost.stayInHome();
             }
         }
+    }
+
+    public void stayInHome() {
+
     }
 
     // enable or disable debug mode

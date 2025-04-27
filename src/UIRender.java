@@ -2,11 +2,7 @@
 // this class handles rendering of UI elements like score, lives, and game state transitions
 // start screen, pause screen, game over screen
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.FontMetrics;
-import java.awt.Rectangle;
+import java.awt.*;
 
 public class UIRender {
     // reference to game state
@@ -41,10 +37,24 @@ public class UIRender {
         this.gameState = gameState;
 
         // initialize fonts
-        this.titleFont = new Font("Arial", Font.BOLD, 36);
-        this.normalFont = new Font("Arial", Font.BOLD, 18);
-        this.smallFont = new Font("Arial", Font.PLAIN, 14);
-        this.arcadeFont = new Font("Courier New", Font.BOLD, 20);
+        try {
+            //  load an arcade-style font
+            Font arcadeFont = Font.createFont(Font.TRUETYPE_FONT,
+                    new java.io.File("fonts/arcadeclassic.ttf"));
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            ge.registerFont(arcadeFont);
+
+            this.titleFont = arcadeFont.deriveFont(Font.BOLD, 36);
+            this.normalFont = arcadeFont.deriveFont(Font.BOLD, 18);
+            this.smallFont = arcadeFont.deriveFont(Font.PLAIN, 14);
+            this.arcadeFont = arcadeFont.deriveFont(Font.BOLD, 20);
+        } catch (Exception e) {
+            // fallback to a similar-looking system font
+            this.titleFont = new Font("Courier New", Font.BOLD, 36);
+            this.normalFont = new Font("Courier New", Font.BOLD, 18);
+            this.smallFont = new Font("Courier New", Font.PLAIN, 14);
+            this.arcadeFont = new Font("Courier New", Font.BOLD, 20);
+        }
     }
 
     // render all UI elements based on current game state
@@ -87,7 +97,7 @@ public class UIRender {
 
         // update Pacman animation
         pacmanAnimTime += dt;
-        if (pacmanAnimTime >= 0.05) {
+        if (pacmanAnimTime >= 0.001) {
             pacmanAnimTime = 0;
 
             // animate mouth opening and closing
@@ -117,13 +127,13 @@ public class UIRender {
         g.setFont(arcadeFont);
 
         // score
-        g.drawString("SCORE: " + gameState.getScore(), 10, 25);
+        g.drawString("SCORE " + gameState.getScore(), 10, 25);
 
         // lives
-        g.drawString("LIVES: " + gameState.getLives(), 10, 50);
+        g.drawString("LIVES " + gameState.getLives(), 10, 50);
 
         // level
-        String levelText = "LEVEL: " + gameState.getLevel();
+        String levelText = "LEVEL " + gameState.getLevel();
         FontMetrics fm = g.getFontMetrics();
         int levelTextWidth = fm.stringWidth(levelText);
         g.drawString(levelText, SCREEN_WIDTH - levelTextWidth - 10, 25);
@@ -165,22 +175,22 @@ public class UIRender {
         controlsY += 30;
 
         g.setFont(normalFont);
-        g.drawString("↑ or W: Move Up", SCREEN_WIDTH / 2 - 80, controlsY);
+        g.drawString("UP ARROW or W  Move Up", SCREEN_WIDTH / 2 - 80, controlsY);
         controlsY += 25;
 
-        g.drawString("↓ or S: Move Down", SCREEN_WIDTH / 2 - 80, controlsY);
+        g.drawString("DOWN ARROW or S   Move Down", SCREEN_WIDTH / 2 - 80, controlsY);
         controlsY += 25;
 
-        g.drawString("← or A: Move Left", SCREEN_WIDTH / 2 - 80, controlsY);
+        g.drawString("LEFT ARROW or A  Move Left", SCREEN_WIDTH / 2 - 80, controlsY);
         controlsY += 25;
 
-        g.drawString("→ or D: Move Right", SCREEN_WIDTH / 2 - 80, controlsY);
+        g.drawString("RIGHT ARROW or D  Move Right", SCREEN_WIDTH / 2 - 80, controlsY);
         controlsY += 25;
 
-        g.drawString("P: Pause Game", SCREEN_WIDTH / 2 - 80, controlsY);
+        g.drawString("P  Pause Game", SCREEN_WIDTH / 2 - 80, controlsY);
         controlsY += 25;
 
-        g.drawString("ESC: Quit to Menu", SCREEN_WIDTH / 2 - 80, controlsY);
+        g.drawString("ESC  Quit to Menu", SCREEN_WIDTH / 2 - 80, controlsY);
         controlsY += 40;
 
         // draw ghosts with their descriptions
@@ -203,9 +213,10 @@ public class UIRender {
         g.drawString(copyright, (SCREEN_WIDTH - copyrightFm.stringWidth(copyright)) / 2, SCREEN_HEIGHT - 20);
     }
 
-    // draw animated Pacman for start screen
+    // draw animated pacman for start screen
     private void drawAnimatedPacman(Graphics g, int x, int y, int size) {
         g.setColor(Color.YELLOW);
+        // right-facing with animated mouth
         g.fillArc(x, y, size, size, pacmanMouthAngle, 360 - 2 * pacmanMouthAngle);
     }
 
@@ -224,55 +235,61 @@ public class UIRender {
         int x = SCREEN_WIDTH / 2 - 80;
         int y = startY;
         int size = 20;
+       // g.setFont(normalFont);
 
         // blinky (Red)
         g.setColor(Color.RED);
         drawSimpleGhost(g, x - 30, y - 15, size, Color.RED);
-        g.drawString("BLINKY - Chases directly", x, y);
+        g.drawString("BLINKY  Chases directly", x, y);
         y += 30;
 
         // pinky (Pink)
         g.setColor(Color.PINK);
         drawSimpleGhost(g, x - 30, y - 15, size, Color.PINK);
-        g.drawString("PINKY - Ambushes ahead", x, y);
+        g.drawString("PINKY  Ambushes ahead", x, y);
         y += 30;
 
         // inky (Cyan)
         g.setColor(new Color(0, 255, 255));
         drawSimpleGhost(g, x - 30, y - 15, size, new Color(0, 255, 255));
-        g.drawString("INKY - Unpredictable", x, y);
+        g.drawString("INKY  Unpredictable", x, y);
         y += 30;
 
         // clyde (Orange)
         g.setColor(Color.ORANGE);
         drawSimpleGhost(g, x - 30, y - 15, size, Color.ORANGE);
-        g.drawString("CLYDE - Moves randomly", x, y);
+        g.drawString("CLYDE  Moves randomly", x, y);
     }
 
     // draw a simple ghost
     private void drawSimpleGhost(Graphics g, int x, int y, int size, Color ghostColor) {
-        // ghost body
+        // ghost body with rounded top
         g.setColor(ghostColor);
-        g.fillArc(x, y, size, size, 0, 180);
-        g.fillRect(x, y + size / 2, size, size / 2);
 
-        // wavy bottom
-        int waveWidth = size / 5;
-        for (int i = 0; i < 5; i++) {
-            g.fillArc(x + i * waveWidth, y + size, waveWidth, size / 4, 180, 180);
+        // top arc (half circle)
+        g.fillArc(x, y, size, size, 0, 180);
+
+        // main body rectangle
+        g.fillRect(x, y + size/2, size, size/2);
+
+        // bottom waves (3 small arcs)
+        int waveCount = 3;
+        int waveWidth = size / waveCount;
+        for (int i = 0; i < waveCount; i++) {
+            g.fillArc(x + i * waveWidth, y + size, waveWidth, waveWidth/2, 180, 180);
         }
 
         // eyes
         g.setColor(Color.WHITE);
         int eyeSize = size / 3;
-        g.fillOval(x + size / 5, y + size / 3, eyeSize, eyeSize);
-        g.fillOval(x + size * 3 / 5 - eyeSize / 2, y + size / 3, eyeSize, eyeSize);
+        g.fillOval(x + size/4 - eyeSize/2, y + size/3, eyeSize, eyeSize);
+        g.fillOval(x + 3*size/4 - eyeSize/2, y + size/3, eyeSize, eyeSize);
 
-        // pupils
+        // pupils (looking right by default)
         g.setColor(Color.BLACK);
         int pupilSize = eyeSize / 2;
-        g.fillOval(x + size / 4, y + size / 3 + eyeSize / 4, pupilSize, pupilSize);
-        g.fillOval(x + size * 3 / 5 - pupilSize / 2, y + size / 3 + eyeSize / 4, pupilSize, pupilSize);
+        g.fillOval(x + size/4 + pupilSize/2 - eyeSize/2, y + size/3 + eyeSize/4, pupilSize, pupilSize);
+        g.fillOval(x + 3*size/4 + pupilSize/2 - eyeSize/2, y + size/3 + eyeSize/4, pupilSize, pupilSize);
     }
 
     // render pause screen
@@ -308,7 +325,7 @@ public class UIRender {
         // draw current score
         g.setFont(normalFont);
         g.setColor(HIGHLIGHT_COLOR);
-        String scoreText = "CURRENT SCORE: " + gameState.getScore();
+        String scoreText = "CURRENT SCORE " + gameState.getScore();
         FontMetrics fm = g.getFontMetrics();
         int scoreWidth = fm.stringWidth(scoreText);
         g.drawString(scoreText, (SCREEN_WIDTH - scoreWidth) / 2, SCREEN_HEIGHT * 3 / 4);
@@ -355,7 +372,7 @@ public class UIRender {
         g.drawString(finalScore, (SCREEN_WIDTH - scoreWidth) / 2, SCREEN_HEIGHT / 2);
 
         // draw level reached
-        String levelText = "LEVELS COMPLETED: " + (gameState.getLevel() - 1);
+        String levelText = "LEVELS COMPLETED " + (gameState.getLevel() - 1);
         int levelWidth = fmScore.stringWidth(levelText);
         g.drawString(levelText, (SCREEN_WIDTH - levelWidth) / 2, SCREEN_HEIGHT / 2 + 30);
 

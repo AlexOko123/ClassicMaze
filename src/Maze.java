@@ -43,18 +43,34 @@ public class Maze {
     }
 
     public void render(Graphics g) {
-        // draw lines to all connected neighbors
+        // draw lines to connected neighbors with blue color
+        g.setColor(Color.BLUE);
         for (int i = 0; i < neighbors.length; i++) {
             if (neighbors[i] != null) {
                 int[] start = this.position.asInt();
                 int[] end = neighbors[i].position.asInt();
-                g.setColor(Color.WHITE);
+                // use thicker lines for the maze walls
                 g.drawLine(start[0], start[1], end[0], end[1]);
+                // draw a second line to make it thicker
+                switch (i) {
+                    case 0: // UP
+                    case 1: // DOWN
+                        g.drawLine(start[0]-1, start[1], end[0]-1, end[1]);
+                        g.drawLine(start[0]+1, start[1], end[0]+1, end[1]);
+                        break;
+                    case 2: // LEFT
+                    case 3: // RIGHT
+                        g.drawLine(start[0], start[1]-1, end[0], end[1]-1);
+                        g.drawLine(start[0], start[1]+1, end[0], end[1]+1);
+                        break;
+                }
             }
         }
-        // draw the node itself as a circle
+
+        // we can keep the node visualization for debugging but making it smaller
+        // or comment this out in the final version
         int[] pos = this.position.asInt();
         g.setColor(Color.RED);
-        g.fillOval(pos[0] - 6, pos[1] - 6, 12, 12);
+        g.fillOval(pos[0] - 3, pos[1] - 3, 6, 6);
     }
 }
