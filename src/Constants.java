@@ -24,6 +24,12 @@ public class Constants {
     public static final int LEFT = 2;
     public static final int RIGHT = -2;
 
+    // directions
+    public static final int FACE_RIGHT = 0;
+    public static final int FACE_UP = 90;
+    public static final int FACE_LEFT = 180;
+    public static final int FACE_DOWN = 270;
+
     // character types
     public static final int PACMAN = 0;
     private static final int GHOST = 1;

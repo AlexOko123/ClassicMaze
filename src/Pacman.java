@@ -168,16 +168,16 @@ public class Pacman implements KeyListener {
         // determine start angle based on direction
         switch (direction) {
             case Constants.RIGHT:
-                startAngle = 0;
+                startAngle = Constants.FACE_RIGHT;
                 break;
             case Constants.DOWN:
-                startAngle = 90;
+                startAngle = Constants.FACE_DOWN;
                 break;
             case Constants.LEFT:
-                startAngle = 180;
+                startAngle = Constants.FACE_LEFT;
                 break;
             case Constants.UP:
-                startAngle = 270;
+                startAngle = Constants.FACE_UP;
                 break;
         }
 

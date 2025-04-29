@@ -69,8 +69,8 @@ public class Maze {
 
         // we can keep the node visualization for debugging but making it smaller
         // or comment this out in the final version
-        int[] pos = this.position.asInt();
-        g.setColor(Color.RED);
-        g.fillOval(pos[0] - 3, pos[1] - 3, 6, 6);
+        //int[] pos = this.position.asInt();
+        //g.setColor(Color.RED);
+        //g.fillOval(pos[0] - 3, pos[1] - 3, 6, 6);
     }
 }
